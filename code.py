@@ -2,12 +2,26 @@ from gensim.models import KeyedVectors
 from gensim.models import Word2Vec
 import numpy as np
 from sklearn.utils.extmath import randomized_svd
-import gensim
-print(gensim.__version__)
+
+# My own imports 
+from collections import Counter
+import re
 
 def top_k_unigrams(tweets, stop_words, k):
-    # FILL IN CODE
-    pass
+    unigrams_counter = Counter()
+    for tweet in tweets:
+        # Generate Unigram
+        for token in tweet.split():
+            if token not in stop_words:
+                unigrams_counter[token] += 1
+            
+    if k < -1:
+        raise ValueError("Enter k as a number greater or equal to -1")   
+    if k == -1 :
+        return unigrams_counter
+    else:
+        return unigrams_counter.most_common(k)
+
 
 def context_word_frequencies(tweets, stop_words, context_size, frequent_unigrams):
     # FILL IN CODE
