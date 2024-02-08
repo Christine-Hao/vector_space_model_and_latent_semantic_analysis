@@ -6,14 +6,36 @@ from sklearn.utils.extmath import randomized_svd
 # My own imports 
 from collections import Counter
 import re
-
+'''
 def top_k_unigrams(tweets, stop_words, k):
+    is_accepted = re.compile(r'\b[a-z#]\S*')
+    unigrams_counter = Counter()
+    
+    for tweet in tweets:
+        words = is_accepted.findall(tweet)
+        # Note that re.findall divides the wrods into list 
+        for word in words:
+            if word not in stop_words:
+                unigrams_counter[word] += 1
+            
+    if k < -1:
+        raise ValueError("Enter k as a number greater or equal to -1")   
+    if k == -1 :
+        return unigrams_counter
+    else:
+        return unigrams_counter.most_common(k)
+    Note :If i use this verison, I get more matches, but not exatly like the sample output
+
+'''
+def top_k_unigrams(tweets, stop_words, k):
+    is_accepted = re.compile(r'\A[a-z#]')
     unigrams_counter = Counter()
     for tweet in tweets:
         # Generate Unigram
         for token in tweet.split():
             if token not in stop_words:
-                unigrams_counter[token] += 1
+                if is_accepted.match(token) or token == "@USER":
+                    unigrams_counter[token] += 1
             
     if k < -1:
         raise ValueError("Enter k as a number greater or equal to -1")   
@@ -24,8 +46,42 @@ def top_k_unigrams(tweets, stop_words, k):
 
 
 def context_word_frequencies(tweets, stop_words, context_size, frequent_unigrams):
-    # FILL IN CODE
-    pass
+    is_accepted = re.compile(r'\A[a-z#]')
+    # Top 1000 frequent words : tur nthe list of tuples into dict for better performance
+    top_thousand_frequent_words = dict(top_k_unigrams(tweets, stop_words, 1000))
+    context_counter = Counter()
+    
+    for tweet in tweets:
+        token_list = tweet.split()
+        for i, token in enumerate(token_list):
+            word1 = token_list[i]
+            for j in range(1, context_size):
+                word2_index = i + j
+                if word2_index >=len(token_list):
+                    break
+                else:
+                    word2 = token_list[word2_index]
+                    if word2 not in stop_words and is_accepted.match(word2) and word2 in top_thousand_frequent_words:
+                        context_counter[(word1, word2)]+=1
+    return context_counter
+ '''
+ I GET [(('the', 'pandemic'), 13823), (('a', 'pandemic'), 12546), (('a', 'mask'), 12518), (('do', 'n’t'), 9734), (('social', 'distancing'), 6716), (('this', 'pandemic'), 6044), (('of', 'covid'), 5559), (('to', 'get'), 5296), (('to', 'wear'), 4965), (('URL', 'via'), 4857)]
+ 
+ COMPARED TO [(('the', 'pandemic'), 19811),
+    (('a', 'pandemic'), 16615),
+    (('a', 'mask'), 14353),
+    (('a', 'wear'), 11017),
+    (('wear', 'mask'), 10628),
+    (('mask', 'wear'), 10628),
+    (('do', 'n’t'), 10237),
+    (('during', 'pandemic'), 8127),
+    (('the', 'covid'), 7630),
+    (('to', 'go'), 7527)]
+    '''
+                    
+                
+        
+
 
 def pmi(word1, word2, unigram_counter, context_counter):
     # FILL IN CODE
